@@ -17,13 +17,24 @@
 <body class="official bgColor0">
 	
 	<!-- The surface is the main playing field for the game -->
-	<svg  id="surface" style="width:100% height:100%" xmlns="http://www.w3.org/2000/svg" version="1.1" onclick="toggleSimStep();">
+	<svg  id="surface" style="width:100%; height:100%" xmlns="http://www.w3.org/2000/svg" version="1.1" onclick="toggleSimStep();">
 	</svg>
 	
 	<div id="title"  style="position:absolute;bottom:0;left:0">Basic Boarding Model</div>
 	
-	<div id="controls" style="position:absolute;bottom:0;left:35%">Animation Speed:
-	<input id="slider1" type="range" min="0" value:"275" max="1000" step="10" onchange="redrawWindow();" /> 
+	<div id="controls" style="position:absolute;bottom:0;left:25%">Animation Speed:
+	<input id="slider1" type="range" min="0" value:"275" max="1000" step="10" onchange="redrawWindow();" />
+	Boarding Method: 
+	<select name="Boarding Method" id="bm" onchange="redrawWindow();">
+		<option value="random" selected="selected">Random</option>
+		<option value="ftb">Front to Back (in 5 column groups)</option>
+		<option value="btf">Back of Front (in 5 column groups)</option>
+		<option value="wta_random">Window to Aisle Random</option>
+		<option value="wta_ftb">Window to Aisle, Front to Back (in 5 column groups)</option>
+		<option value="wta_btf">Window to Aisle, Back of Front (in 5 column groups)</option>
+		<option value="sm">Steffen Modified</option>
+		<option value="sp">Steffen perfect</option>
+	  </select>
 	</div>
 	
 	<a id="credits" href="http://www.icons-land.com" style="position:absolute;bottom:0;right:0">Icons by icons-land.com</a>
