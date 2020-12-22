@@ -1,4 +1,4 @@
-# Design and Analysis of Various Boarding Methods of Modern Aircrafts    
+# Design and Analysis of Various Aircraft Boarding Methods    
 SUTD ESD 2020 - Simulation Modelling and Analysis (SMA) term project   
 Team Members: Ryan Yip, Jordan Tay, Brandon Ho, Zenn Png    
 
