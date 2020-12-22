@@ -1,0 +1,826 @@
+---
+title: "OA_part1"
+author: "zenn"
+date: "12/2/2020"
+output: html_document
+---
+
+`Output Analysis`
+
+-------------
+`START of OA`
+-------------
+
+We read our simulation output data to the following dataframes:
+
+Variable            | default | min | max
+bag storing time    | 5       | 0   | 10
+seat shuffling time | 2       | 0   | 4
+
+bd_sd - results for (params = default bag storing time and default seat shuffling time)
+bd_smax - results for (params = default bag storing time and max seat shuffling time)
+bd_smin - results for (params = default bag storing time and min seat shuffling time)
+sd_bmax - results for (params = max bag storing time and default seat shuffling time)
+sd_bmin - results for (params = min bag storing time and default seat shuffling time)
+
+```{r}
+library(readxl)
+bd_sd <- read_xlsx("bag_5_seat_2_transformed.xlsx")
+bd_smax <- read_xlsx("bag_5_seat_4_transformed.xlsx")
+bd_smin <- read_xlsx("bag_5_seat_0_transformed.xlsx")
+sd_bmax <- read_xlsx("bag_10_seat_2_transformed.xlsx")
+sd_bmin <- read_xlsx("bag_0_seat_2_transformed.xlsx")
+```
+
+
+--------
+`Part 1: Confident estimates for 'totalTime' and 'avgtime'`
+--------
+
+We now use CLT and the z statistic to find a confident estimate for the 'totalTime' taken to board the plane and the 'avgTime' a passenger takes to board the plane.
+
+For "totalTime" (Total time taken for everyone to board the plane): 
+
+```{r}
+confidence <- 0.975
+runs <- 250
+models <- c("btf","ftb","random","sm","sp","wta_btf","wta_ftb","wta_random")
+
+bd_sd_ci_tt <- data.frame(lower.ci=numeric(), upper.ci=numeric())
+for (i in bd_sd[,2:9]) {
+   mean.tt <- mean(i)
+   var.tt <- var(i)
+   ci.tt.lower <- mean.tt-qnorm(confidence)*(sqrt(var.tt)/sqrt(runs))
+   ci.tt.upper <- mean.tt+qnorm(confidence)*(sqrt(var.tt)/sqrt(runs))
+   bd_sd_ci_tt <- rbind(bd_sd_ci_tt, c(ci.tt.lower,ci.tt.upper))
+}
+names(bd_sd_ci_tt)[1] <- "lower_ci"
+names(bd_sd_ci_tt)[2] <- "upper_ci"
+bd_sd_ci_tt$models <- models
+
+bd_smax_ci_tt <- data.frame(lower.ci=numeric(), upper.ci=numeric())
+for (i in bd_smax[,2:9]) {
+   mean.tt <- mean(i)
+   var.tt <- var(i)
+   ci.tt.lower <- mean.tt-qnorm(confidence)*(sqrt(var.tt)/sqrt(runs))
+   ci.tt.upper <- mean.tt+qnorm(confidence)*(sqrt(var.tt)/sqrt(runs))
+   bd_smax_ci_tt <- rbind(bd_smax_ci_tt, c(ci.tt.lower,ci.tt.upper))
+}
+names(bd_smax_ci_tt)[1] <- "lower_ci"
+names(bd_smax_ci_tt)[2] <- "upper_ci"
+bd_smax_ci_tt$models <- models
+
+bd_smin_ci_tt <- data.frame(lower.ci=numeric(), upper.ci=numeric())
+for (i in bd_smin[,2:9]) {
+   mean.tt <- mean(i)
+   var.tt <- var(i)
+   ci.tt.lower <- mean.tt-qnorm(confidence)*(sqrt(var.tt)/sqrt(runs))
+   ci.tt.upper <- mean.tt+qnorm(confidence)*(sqrt(var.tt)/sqrt(runs))
+   bd_smin_ci_tt <- rbind(bd_smin_ci_tt, c(ci.tt.lower,ci.tt.upper))
+}
+names(bd_smin_ci_tt)[1] <- "lower_ci"
+names(bd_smin_ci_tt)[2] <- "upper_ci"
+bd_smin_ci_tt$models <- models
+
+bmax_sd_ci_tt <- data.frame(lower.ci=numeric(), upper.ci=numeric())
+for (i in sd_bmax[,2:9]) {
+   mean.tt <- mean(i)
+   var.tt <- var(i)
+   ci.tt.lower <- mean.tt-qnorm(confidence)*(sqrt(var.tt)/sqrt(runs))
+   ci.tt.upper <- mean.tt+qnorm(confidence)*(sqrt(var.tt)/sqrt(runs))
+   bmax_sd_ci_tt <- rbind(bmax_sd_ci_tt, c(ci.tt.lower,ci.tt.upper))
+}
+names(bmax_sd_ci_tt)[1] <- "lower_ci"
+names(bmax_sd_ci_tt)[2] <- "upper_ci"
+bmax_sd_ci_tt$models <- models
+
+bmin_sd_ci_tt <- data.frame(lower.ci=numeric(), upper.ci=numeric())
+for (i in sd_bmin[,2:9]) {
+   mean.tt <- mean(i)
+   var.tt <- var(i)
+   ci.tt.lower <- mean.tt-qnorm(confidence)*(sqrt(var.tt)/sqrt(runs))
+   ci.tt.upper <- mean.tt+qnorm(confidence)*(sqrt(var.tt)/sqrt(runs))
+   bmin_sd_ci_tt <- rbind(bmin_sd_ci_tt, c(ci.tt.lower,ci.tt.upper))
+}
+names(bmin_sd_ci_tt)[1] <- "lower_ci"
+names(bmin_sd_ci_tt)[2] <- "upper_ci"
+bmin_sd_ci_tt$models <- models
+```
+
+```{r}
+bd_sd_ci_tt
+bmin_sd_ci_tt
+bmax_sd_ci_tt
+bd_smin_ci_tt
+bd_smax_ci_tt
+```
+
+Sorting models from best model to worst:
+
+```{r}
+bd_sd_ci_tt$mean <- (bd_sd_ci_tt$lower_ci+bd_sd_ci_tt$upper_ci)/2
+bd_sd_ci_tt[order(bd_sd_ci_tt$mean),]
+
+bmin_sd_ci_tt$mean <- (bmin_sd_ci_tt$lower_ci+bmin_sd_ci_tt$upper_ci)/2
+bmin_sd_ci_tt[order(bmin_sd_ci_tt$mean),]
+
+bmax_sd_ci_tt$mean <- (bmax_sd_ci_tt$lower_ci+bmax_sd_ci_tt$upper_ci)/2
+bmax_sd_ci_tt[order(bmax_sd_ci_tt$mean),]
+
+bd_smin_ci_tt$mean <- (bd_smin_ci_tt$lower_ci+bd_smin_ci_tt$upper_ci)/2
+bd_smin_ci_tt[order(bd_smin_ci_tt$mean),]
+
+bd_smax_ci_tt$mean <- (bd_smax_ci_tt$lower_ci+bd_smax_ci_tt$upper_ci)/2
+bd_smax_ci_tt[order(bd_smax_ci_tt$mean),]
+```
+Here we can see the rankings of the models for the total time taken to board the plane based on our 5 param configurations
+We also observe a relatively small CI for most of the models
+
+
+-----------------------------------------------------
+For "avgTime" (Average boarding time of a passenger):
+
+```{r}
+confidence <- 0.975
+runs <- 250
+models <- c("btf","ftb","random","sm","sp","wta_btf","wta_ftb","wta_random")
+
+bd_sd_ci_at <- data.frame(lower.ci=numeric(), upper.ci=numeric())
+for (i in bd_sd[,10:17]) {
+   mean.at <- mean(i)
+   var.at <- var(i)
+   ci.at.lower <- mean.at-qnorm(confidence)*(sqrt(var.at)/sqrt(runs))
+   ci.at.upper <- mean.at+qnorm(confidence)*(sqrt(var.at)/sqrt(runs))
+   bd_sd_ci_at <- rbind(bd_sd_ci_at, c(ci.at.lower,ci.at.upper))
+}
+names(bd_sd_ci_at)[1] <- "lower_ci"
+names(bd_sd_ci_at)[2] <- "upper_ci"
+bd_sd_ci_at$models <- models
+
+bd_smax_ci_at <- data.frame(lower.ci=numeric(), upper.ci=numeric())
+for (i in bd_smax[,10:17]) {
+   mean.at <- mean(i)
+   var.at <- var(i)
+   ci.at.lower <- mean.at-qnorm(confidence)*(sqrt(var.at)/sqrt(runs))
+   ci.at.upper <- mean.at+qnorm(confidence)*(sqrt(var.at)/sqrt(runs))
+   bd_smax_ci_at <- rbind(bd_smax_ci_at, c(ci.at.lower,ci.at.upper))
+}
+names(bd_smax_ci_at)[1] <- "lower_ci"
+names(bd_smax_ci_at)[2] <- "upper_ci"
+bd_smax_ci_at$models <- models
+
+bd_smin_ci_at <- data.frame(lower.ci=numeric(), upper.ci=numeric())
+for (i in bd_smin[,10:17]) {
+   mean.at <- mean(i)
+   var.at <- var(i)
+   ci.at.lower <- mean.at-qnorm(confidence)*(sqrt(var.at)/sqrt(runs))
+   ci.at.upper <- mean.at+qnorm(confidence)*(sqrt(var.at)/sqrt(runs))
+   bd_smin_ci_at <- rbind(bd_smin_ci_at, c(ci.at.lower,ci.at.upper))
+}
+names(bd_smin_ci_at)[1] <- "lower_ci"
+names(bd_smin_ci_at)[2] <- "upper_ci"
+bd_smin_ci_at$models <- models
+
+bmax_sd_ci_at <- data.frame(lower.ci=numeric(), upper.ci=numeric())
+for (i in sd_bmax[,10:17]) {
+   mean.at <- mean(i)
+   var.at <- var(i)
+   ci.at.lower <- mean.at-qnorm(confidence)*(sqrt(var.at)/sqrt(runs))
+   ci.at.upper <- mean.at+qnorm(confidence)*(sqrt(var.at)/sqrt(runs))
+   bmax_sd_ci_at <- rbind(bmax_sd_ci_at, c(ci.at.lower,ci.at.upper))
+}
+names(bmax_sd_ci_at)[1] <- "lower_ci"
+names(bmax_sd_ci_at)[2] <- "upper_ci"
+bmax_sd_ci_at$models <- models
+
+bmin_sd_ci_at <- data.frame(lower.ci=numeric(), upper.ci=numeric())
+for (i in sd_bmin[,10:17]) {
+   mean.at <- mean(i)
+   var.at <- var(i)
+   ci.at.lower <- mean.at-qnorm(confidence)*(sqrt(var.at)/sqrt(runs))
+   ci.at.upper <- mean.at+qnorm(confidence)*(sqrt(var.at)/sqrt(runs))
+   bmin_sd_ci_at <- rbind(bmin_sd_ci_at, c(ci.at.lower,ci.at.upper))
+}
+names(bmin_sd_ci_at)[1] <- "lower_ci"
+names(bmin_sd_ci_at)[2] <- "upper_ci"
+bmin_sd_ci_at$models <- models
+```
+
+```{r}
+bd_sd_ci_at
+bmin_sd_ci_at
+bmax_sd_ci_at
+bd_smin_ci_at
+bd_smax_ci_at
+```
+
+similarly, we sort from best model to worst:
+
+```{r}
+bd_sd_ci_at$mean <- (bd_sd_ci_at$lower_ci+bd_sd_ci_at$upper_ci)/2
+bd_sd_ci_at[order(bd_sd_ci_at$mean),]
+
+bmin_sd_ci_at$mean <- (bmin_sd_ci_at$lower_ci+bmin_sd_ci_at$upper_ci)/2
+bmin_sd_ci_at[order(bmin_sd_ci_at$mean),]
+
+bmax_sd_ci_at$mean <- (bmax_sd_ci_at$lower_ci+bmax_sd_ci_at$upper_ci)/2
+bmax_sd_ci_at[order(bmax_sd_ci_at$mean),]
+
+bd_smin_ci_at$mean <- (bd_smin_ci_at$lower_ci+bd_smin_ci_at$upper_ci)/2
+bd_smin_ci_at[order(bd_smin_ci_at$mean),]
+
+bd_smax_ci_at$mean <- (bd_smax_ci_at$lower_ci+bd_smax_ci_at$upper_ci)/2
+bd_smax_ci_at[order(bd_smax_ci_at$mean),]
+```
+Here we can see the rankings of the models for the average passenger boarding time, based on our 5 param configurations
+We also observe an even small CI for the models as compared to the totaltime taken. 
+
+
+--------
+`Part 2 Visualisation of "totalTime" and "avgTime"`
+--------
+
+Density plots of "totalTime" and "avgTime" for 8 models (for 5 param configs):
+
+We also assign colors to model based on their performance in the default param config (bd_sd):
+(darkblue (best) ----> darkred (worst))
+
+```{r}
+colors <- c("navyblue","violet","turquoise","green","yellow3","orange","tomato2","red4")
+models <- c("sp", "wta_random","random","wta_btf","sm","wta_ftb","btf","ftb")
+d1 <- plot(density(bd_sd$totalBoardingTime_sp, from = 600, to = 1500), main = "Density Histograms for models (bd_sd)", xlab = "total time taken", col=colors[1])  # ylim = c() to change y axis limit
+d2 <- lines(density(bd_sd$totalBoardingTime_wta_random),col=colors[2])
+d3 <- lines(density(bd_sd$totalBoardingTime_random),col=colors[3])
+d4 <- lines(density(bd_sd$totalBoardingTime_wta_btf),col=colors[4])
+d5 <- lines(density(bd_sd$totalBoardingTime_sm),col=colors[5])
+d6 <- lines(density(bd_sd$totalBoardingTime_wta_ftb),col=colors[6])
+d7 <- lines(density(bd_sd$totalBoardingTime_btf),col=colors[7])
+d8 <- lines(density(bd_sd$totalBoardingTime_ftb),col=colors[8])
+legend("topright", inset=.02, title="Model", models, fill=colors, horiz=FALSE, cex=0.8)
+```
+```{r}
+colors <- c("navyblue","violet","turquoise","green","yellow3","orange","tomato2","red4")
+models <- c("sp", "wta_random","random","wta_btf","sm","wta_ftb","btf","ftb")
+d1 <- plot(density(bd_sd$avgBoardingTime_sp, from = 30, to = 110), main = "Density Histograms for models (bd_sd)", xlab = "average time taken for each passenger", col=colors[1], ylim=c(0,0.6))
+d2 <- lines(density(bd_sd$avgBoardingTime_wta_random),col=colors[2])
+d3 <- lines(density(bd_sd$avgBoardingTime_random),col=colors[3])
+d4 <- lines(density(bd_sd$avgBoardingTime_wta_btf),col=colors[4])
+d5 <- lines(density(bd_sd$avgBoardingTime_sm),col=colors[5])
+d6 <- lines(density(bd_sd$avgBoardingTime_wta_ftb),col=colors[6])
+d7 <- lines(density(bd_sd$avgBoardingTime_btf),col=colors[7])
+d8 <- lines(density(bd_sd$avgBoardingTime_ftb),col=colors[8])
+legend("topright", inset=.02, title="Model", models, fill=colors, horiz=FALSE, cex=0.8)
+```
+```{r}
+colors <- c("navyblue","violet","turquoise","green","yellow3","orange","tomato2","red4")
+models <- c("sp", "wta_random","random","wta_btf","sm","wta_ftb","btf","ftb")
+d1 <- plot(density(bd_smax$totalBoardingTime_sp, from = 600, to = 1600), main = "Density Histograms for models (bd_smax)", xlab = "total time taken", col=colors[1])
+d2 <- lines(density(bd_smax$totalBoardingTime_wta_random),col=colors[2])
+d3 <- lines(density(bd_smax$totalBoardingTime_random),col=colors[3])
+d4 <- lines(density(bd_smax$totalBoardingTime_wta_btf),col=colors[4])
+d5 <- lines(density(bd_smax$totalBoardingTime_sm),col=colors[5])
+d6 <- lines(density(bd_smax$totalBoardingTime_wta_ftb),col=colors[6])
+d7 <- lines(density(bd_smax$totalBoardingTime_btf),col=colors[7])
+d8 <- lines(density(bd_smax$totalBoardingTime_ftb),col=colors[8])
+legend("topright", inset=.02, title="Model", models, fill=colors, horiz=FALSE, cex=0.8)
+```
+```{r}
+colors <- c("navyblue","violet","turquoise","green","yellow3","orange","tomato2","red4")
+models <- c("sp", "wta_random","random","wta_btf","sm","wta_ftb","btf","ftb")
+d1 <- plot(density(bd_smax$avgBoardingTime_sp, from = 30, to = 125), main = "Density Histograms for models (bd_smax)", xlab = "average time taken for each passenger", col=colors[1], ylim=c(0,0.6))
+d2 <- lines(density(bd_smax$avgBoardingTime_wta_random),col=colors[2])
+d3 <- lines(density(bd_smax$avgBoardingTime_random),col=colors[3])
+d4 <- lines(density(bd_smax$avgBoardingTime_wta_btf),col=colors[4])
+d5 <- lines(density(bd_smax$avgBoardingTime_sm),col=colors[5])
+d6 <- lines(density(bd_smax$avgBoardingTime_wta_ftb),col=colors[6])
+d7 <- lines(density(bd_smax$avgBoardingTime_btf),col=colors[7])
+d8 <- lines(density(bd_smax$avgBoardingTime_ftb),col=colors[8])
+legend("topright", inset=.02, title="Model", models, fill=colors, horiz=FALSE, cex=0.8)
+```
+```{r}
+colors <- c("navyblue","violet","turquoise","green","yellow3","orange","tomato2","red4")
+models <- c("sp", "wta_random","random","wta_btf","sm","wta_ftb","btf","ftb")
+d1 <- plot(density(bd_smin$totalBoardingTime_sp, from = 600, to = 1400), main = "Density Histograms for models (bd_smin)", xlab = "total time taken", col=colors[1])
+d2 <- lines(density(bd_smin$totalBoardingTime_wta_random),col=colors[2])
+d3 <- lines(density(bd_smin$totalBoardingTime_random),col=colors[3])
+d4 <- lines(density(bd_smin$totalBoardingTime_wta_btf),col=colors[4])
+d5 <- lines(density(bd_smin$totalBoardingTime_sm),col=colors[5])
+d6 <- lines(density(bd_smin$totalBoardingTime_wta_ftb),col=colors[6])
+d7 <- lines(density(bd_smin$totalBoardingTime_btf),col=colors[7])
+d8 <- lines(density(bd_smin$totalBoardingTime_ftb),col=colors[8])
+legend("topright", inset=.02, title="Model", models, fill=colors, horiz=FALSE, cex=0.8)
+```
+```{r}
+colors <- c("navyblue","violet","turquoise","green","yellow3","orange","tomato2","red4")
+models <- c("sp", "wta_random","random","wta_btf","sm","wta_ftb","btf","ftb")
+d1 <- plot(density(bd_smin$avgBoardingTime_sp, from = 30, to = 100), main = "Density Histograms for models (bd_smin)", xlab = "average time taken for each passenger", col=colors[1],ylim=c(0,0.6))
+d2 <- lines(density(bd_smin$avgBoardingTime_wta_random),col=colors[2])
+d3 <- lines(density(bd_smin$avgBoardingTime_random),col=colors[3])
+d4 <- lines(density(bd_smin$avgBoardingTime_wta_btf),col=colors[4])
+d5 <- lines(density(bd_smin$avgBoardingTime_sm),col=colors[5])
+d6 <- lines(density(bd_smin$avgBoardingTime_wta_ftb),col=colors[6])
+d7 <- lines(density(bd_smin$avgBoardingTime_btf),col=colors[7])
+d8 <- lines(density(bd_smin$avgBoardingTime_ftb),col=colors[8])
+legend("topright", inset=.02, title="Model", models, fill=colors, horiz=FALSE, cex=0.8)
+```
+```{r}
+colors <- c("navyblue","violet","turquoise","green","yellow3","orange","tomato2","red4")
+models <- c("sp", "wta_random","random","wta_btf","sm","wta_ftb","btf","ftb")
+d1 <- plot(density(sd_bmax$totalBoardingTime_sp, from = 600, to = 2050), main = "Density Histograms for models (bmax_sd)", xlab = "total time taken", col=colors[1])  
+d2 <- lines(density(sd_bmax$totalBoardingTime_wta_random),col=colors[2])
+d3 <- lines(density(sd_bmax$totalBoardingTime_random),col=colors[3])
+d4 <- lines(density(sd_bmax$totalBoardingTime_wta_btf),col=colors[4])
+d5 <- lines(density(sd_bmax$totalBoardingTime_sm),col=colors[5])
+d6 <- lines(density(sd_bmax$totalBoardingTime_wta_ftb),col=colors[6])
+d7 <- lines(density(sd_bmax$totalBoardingTime_btf),col=colors[7])
+d8 <- lines(density(sd_bmax$totalBoardingTime_ftb),col=colors[8])
+legend("topright", inset=.02, title="Model", models, fill=colors, horiz=FALSE, cex=0.8)
+```
+```{r}
+colors <- c("navyblue","violet","turquoise","green","yellow3","orange","tomato2","red4")
+models <- c("sp", "wta_random","random","wta_btf","sm","wta_ftb","btf","ftb")
+d1 <- plot(density(sd_bmax$avgBoardingTime_sp, from = 30, to = 170), main = "Density Histograms for models (bmax_sd)", xlab = "average time taken for each passenger", col=colors[1], ylim=c(0,0.6))
+d2 <- lines(density(sd_bmax$avgBoardingTime_wta_random),col=colors[2])
+d3 <- lines(density(sd_bmax$avgBoardingTime_random),col=colors[3])
+d4 <- lines(density(sd_bmax$avgBoardingTime_wta_btf),col=colors[4])
+d5 <- lines(density(sd_bmax$avgBoardingTime_sm),col=colors[5])
+d6 <- lines(density(sd_bmax$avgBoardingTime_wta_ftb),col=colors[6])
+d7 <- lines(density(sd_bmax$avgBoardingTime_btf),col=colors[7])
+d8 <- lines(density(sd_bmax$avgBoardingTime_ftb),col=colors[8])
+legend("topright", inset=.02, title="Model", models, fill=colors, horiz=FALSE, cex=0.8)
+```
+```{r}
+colors <- c("navyblue","violet","turquoise","green","yellow3","orange","tomato2","red4")
+models <- c("sp", "wta_random","random","wta_btf","sm","wta_ftb","btf","ftb")
+d4 <- plot(density(sd_bmin$totalBoardingTime_wta_btf, from = 500, to = 1260), main = "Density Histograms for models (bmin_sd)", xlab = "total time taken", col=colors[4],ylim=c(0,0.1))
+d1 <- lines(density(sd_bmin$totalBoardingTime_sp),col=colors[1])
+d2 <- lines(density(sd_bmin$totalBoardingTime_wta_random),col=colors[2])
+d3 <- lines(density(sd_bmin$totalBoardingTime_random),col=colors[3])
+d5 <- lines(density(sd_bmin$totalBoardingTime_sm),col=colors[5])
+d6 <- lines(density(sd_bmin$totalBoardingTime_wta_ftb),col=colors[6])
+d7 <- lines(density(sd_bmin$totalBoardingTime_btf),col=colors[7])
+d8 <- lines(density(sd_bmin$totalBoardingTime_ftb),col=colors[8])
+legend("topright", inset=.02, title="Model", models, fill=colors, horiz=FALSE, cex=0.8)
+```
+```{r}
+colors <- c("navyblue","violet","turquoise","green","yellow3","orange","tomato2","red4")
+models <- c("sp", "wta_random","random","wta_btf","sm","wta_ftb","btf","ftb")
+d4 <- plot(density(sd_bmin$avgBoardingTime_wta_btf, from = 20, to = 70), main = "Density Histograms for models (bmin_sd)", xlab = "average time taken for each passenger", col=colors[4],ylim=c(0,0.6))
+d1 <- lines(density(sd_bmin$avgBoardingTime_sp),col=colors[1])
+d2 <- lines(density(sd_bmin$avgBoardingTime_wta_random),col=colors[2])
+d3 <- lines(density(sd_bmin$avgBoardingTime_random),col=colors[3])
+d5 <- lines(density(sd_bmin$avgBoardingTime_sm),col=colors[5])
+d6 <- lines(density(sd_bmin$avgBoardingTime_wta_ftb),col=colors[6])
+d7 <- lines(density(sd_bmin$avgBoardingTime_btf),col=colors[7])
+d8 <- lines(density(sd_bmin$avgBoardingTime_ftb),col=colors[8])
+legend("topright", inset=.02, title="Model", models, fill=colors, horiz=FALSE, cex=0.8)
+```
+
+
+--------
+`Part 3 Confident Diffentiation of models using paired t-tests`
+--------
+
+For our results, TRUE TRUE means zero lies outside the CI of Z, so we are confident that one model is better than the other 
+
+Reference on model rankings for the different params configurations:
+
+```{r}
+bd_sd_mean_tt <- bd_sd_ci_tt[,3:4]
+bmin_sd_mean_tt <- bmin_sd_ci_tt[,3:4]
+bmax_sd_mean_tt <- bmax_sd_ci_tt[,3:4]
+bd_smin_mean_tt <- bd_smin_ci_tt[,3:4]
+bd_smax_mean_tt <- bd_smax_ci_tt[,3:4]
+
+bd_sd_mean_tt[order(bd_sd_mean_tt$mean),]
+bmin_sd_mean_tt[order(bmin_sd_mean_tt$mean),]
+bmax_sd_mean_tt[order(bmax_sd_mean_tt$mean),] 
+bd_smin_mean_tt[order(bd_smin_mean_tt$mean),] 
+bd_smax_mean_tt[order(bd_smax_mean_tt$mean),]
+```
+
+Paired T-test for 8 models (for metric = totalBoardingTime)
+
+bd_sd
+```{r}
+t.test(bd_sd[6]-bd_sd[9], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_sd[6]-bd_sd[9], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int 
+t.test(bd_sd[9]-bd_sd[4], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_sd[4]-bd_sd[7], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_sd[7]-bd_sd[5], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_sd[5]-bd_sd[8], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_sd[8]-bd_sd[2], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_sd[2]-bd_sd[3], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+```
+
+sd_bmin
+```{r}
+t.test(sd_bmin[6]-sd_bmin[7], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(sd_bmin[7]-sd_bmin[5], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(sd_bmin[5]-sd_bmin[9], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(sd_bmin[9]-sd_bmin[8], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(sd_bmin[8]-sd_bmin[4], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(sd_bmin[4]-sd_bmin[2], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(sd_bmin[2]-sd_bmin[3], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+
+t.test(sd_bmin[7]-sd_bmin[5], mu=0, alternative = "two.sided", conf.level = 0.95)$conf.int < 0  # we confirm by checking the 95% CI (instead of 99%)
+
+t.test(sd_bmin[7]-sd_bmin[9], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0  # we also check between wta_btf and wta_random just in case
+# for sp (index 6) and sm (index 5) models, the values are constant throughout so there is 100% confidence that sp is a better model than sm
+```
+
+Hence we cannot say that wta_btf is a better model than sm in terms of total time taken to board plane, for the sd_bmin params
+
+sd_bmax
+```{r}
+t.test(sd_bmax[6]-sd_bmax[9], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(sd_bmax[9]-sd_bmax[4], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(sd_bmax[4]-sd_bmax[7], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(sd_bmax[7]-sd_bmax[5], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(sd_bmax[5]-sd_bmax[8], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(sd_bmax[8]-sd_bmax[2], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(sd_bmax[2]-sd_bmax[3], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+```
+
+bd_smin
+```{r}
+t.test(bd_smin[6]-bd_smin[9], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_smin[9]-bd_smin[4], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_smin[4]-bd_smin[7], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_smin[7]-bd_smin[5], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_smin[5]-bd_smin[2], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_smin[2]-bd_smin[8], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_smin[8]-bd_smin[3], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+```
+
+bd_smax
+```{r}
+t.test(bd_smax[6]-bd_smax[9], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_smax[9]-bd_smax[7], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_smax[7]-bd_smax[4], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_smax[4]-bd_smax[5], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_smax[5]-bd_smax[8], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_smax[8]-bd_smax[2], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_smax[2]-bd_smax[3], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+```
+
+
+-----------------------------------------------------------
+Paired T-test for 8 models (for metric = avgPassengerTime)
+
+Reference on model rankings for the different params configurations:
+
+```{r}
+bd_sd_mean_at <- bd_sd_ci_at[,3:4]
+bmin_sd_mean_at <- bmin_sd_ci_at[,3:4]
+bmax_sd_mean_at <- bmax_sd_ci_at[,3:4]
+bd_smin_mean_at <- bd_smin_ci_at[,3:4]
+bd_smax_mean_at <- bd_smax_ci_at[,3:4]
+
+bd_sd_mean_at[order(bd_sd_mean_at$mean),]
+bmin_sd_mean_at[order(bmin_sd_mean_at$mean),]
+bmax_sd_mean_at[order(bmax_sd_mean_at$mean),] 
+bd_smin_mean_at[order(bd_smin_mean_at$mean),] 
+bd_smax_mean_at[order(bd_smax_mean_at$mean),]
+```
+
+bd_sd
+```{r}
+t.test(bd_sd[14]-bd_sd[17], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_sd[17]-bd_sd[12], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_sd[12]-bd_sd[15], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_sd[15]-bd_sd[13], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_sd[13]-bd_sd[16], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_sd[16]-bd_sd[10], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_sd[10]-bd_sd[11], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+```
+
+sd_bmin
+```{r}
+print('TRUE TRUE')  # since the value of sm and sp is constant for all simulation, so we are 100% sure that sp is a better model than sm but a value of 0.60
+t.test(sd_bmin[13]-sd_bmin[15], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(sd_bmin[15]-sd_bmin[17], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0 
+t.test(sd_bmin[17]-sd_bmin[16], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(sd_bmin[16]-sd_bmin[12], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(sd_bmin[12]-sd_bmin[10], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(sd_bmin[10]-sd_bmin[11], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+```
+
+sd_bmax
+```{r}
+t.test(sd_bmax[14]-sd_bmax[17], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(sd_bmax[17]-sd_bmax[12], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(sd_bmax[12]-sd_bmax[15], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(sd_bmax[15]-sd_bmax[13], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(sd_bmax[13]-sd_bmax[16], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(sd_bmax[16]-sd_bmax[10], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(sd_bmax[10]-sd_bmax[11], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+```
+
+bd_smin
+```{r}
+t.test(bd_smin[14]-bd_smin[17], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_smin[17]-bd_smin[12], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_smin[12]-bd_smin[15], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_smin[15]-bd_smin[13], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_smin[13]-bd_smin[16], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_smin[16]-bd_smin[10], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_smin[10]-bd_smin[11], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+```
+
+bd_smax
+```{r}
+t.test(bd_smax[14]-bd_smax[17], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_smax[17]-bd_smax[12], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_smax[12]-bd_smax[15], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_smax[15]-bd_smax[13], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_smax[13]-bd_smax[16], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_smax[16]-bd_smax[10], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+t.test(bd_smax[10]-bd_smax[11], mu=0, alternative = "two.sided", conf.level = 0.99)$conf.int < 0
+```
+
+
+--------
+`Part 4 Finding Thresholds`
+--------
+
+We will now discover thresholds (if any) of factors like no. of stops/no. of seat shuffles that could potentially make 1 model better than the other 
+
+For `Factor = No. of Seat Shuffles` affecting total boarding time:
+
+bd_sd
+```{r}
+library(ggplot2)
+bd_sd_reg <- cbind(stack(bd_sd[2:9]),stack(bd_sd[18:25]))[-4]
+ggplot(bd_sd_reg, aes(x=values.1, y=values, col=ind)) + geom_point() + geom_smooth(method="lm", se=FALSE) + labs(title="Plot of total boarding time by no. of seat shuffle (bd_sd)", x ="no. of seat shuffle", y = "total boarding time")
+```
+
+Seat shuffle only affects models btf, ftb and random. Since the regression lines are almost parallel, there is no threshold value 
+for seat shuffle that will affect model ranking. The rest of the models are not affected by seat shuffling thus there is also no 
+threshold value for them.Taking a closer look at them:
+
+```{r}
+bd_sd_reg <- cbind(stack(bd_sd[5:9]),stack(bd_sd[21:25]))[-4]
+ggplot(bd_sd_reg, aes(x=values.1, y=values, col=ind)) + geom_point() + geom_smooth(method="lm", se=FALSE) + labs(title="Plot of total boarding time by no. of seat shuffle (bd_sd)", x ="no. of seat shuffle", y = "total boarding time")
+```
+
+sd_bmin
+```{r}
+sd_bmin_reg <- cbind(stack(sd_bmin[2:9]),stack(sd_bmin[18:25]))[-4]
+ggplot(sd_bmin_reg, aes(x=values.1, y=values, col=ind)) + geom_point() + geom_smooth(method="lm", se=FALSE) + labs(title="Plot of total boarding time by no. of seat shuffle (bmin_sd)", x ="no. of seat shuffle", y = "total boarding time")
+```
+no threshold value too
+
+sd_bmax
+```{r}
+sd_bmax_reg <- cbind(stack(sd_bmax[2:9]),stack(sd_bmax[18:25]))[-4]
+ggplot(sd_bmax_reg, aes(x=values.1, y=values, col=ind)) + geom_point() + geom_smooth(method="lm", se=FALSE) + labs(title="Plot of total boarding time by no. of seat shuffle (bmax_sd)", x ="no. of seat shuffle", y = "total boarding time")
+```
+no threshold value too
+
+bd_smin
+```{r}
+bd_smin_reg <- cbind(stack(bd_smin[2:9]),stack(bd_smin[18:25]))[-4]
+ggplot(bd_smin_reg, aes(x=values.1, y=values, col=ind)) + geom_point() + geom_smooth(method="lm", se=FALSE) + labs(title="Plot of total boarding time by no. of seat shuffle (bd_smin)", x ="no. of seat shuffle", y = "total boarding time")
+```
+no threshold value too 
+
+bd_smax
+```{r}
+bd_smax_reg <- cbind(stack(bd_smax[2:9]),stack(bd_smax[18:25]))[-4]
+ggplot(bd_smax_reg, aes(x=values.1, y=values, col=ind)) + geom_point() + geom_smooth(method="lm", se=FALSE) + labs(title="Plot of total boarding time by no. of seat shuffle (bd_smax)", x ="no. of seat shuffle", y = "total boarding time")
+```
+no threshold value too. 
+
+
+----------------------------------
+For Factor = No. of Seat Shuffles affecting avg passenger time:
+
+bd_sd
+```{r}
+library(ggplot2)
+bd_sd_reg <- cbind(stack(bd_sd[10:17]),stack(bd_sd[18:25]))[-4]
+ggplot(bd_sd_reg, aes(x=values.1, y=values, col=ind)) + geom_point() + geom_smooth(method="lm", se=FALSE) + labs(title="Plot of avg passenger time by no. of seat shuffle (bd_sd)", x ="no. of seat shuffle", y = "avg passenger time")
+```
+no threshold value too
+
+sd_bmin
+```{r}
+sd_bmin_reg <- cbind(stack(sd_bmin[10:17]),stack(sd_bmin[18:25]))[-4]
+ggplot(sd_bmin_reg, aes(x=values.1, y=values, col=ind)) + geom_point() + geom_smooth(method="lm", se=FALSE) + labs(title="Plot of avg passenger time by no. of seat shuffle (bmin_sd)", x ="no. of seat shuffle", y = "avg passenger time")
+```
+no threshold value too
+
+sd_bmax
+```{r}
+sd_bmax_reg <- cbind(stack(sd_bmax[10:17]),stack(sd_bmax[18:25]))[-4]
+ggplot(sd_bmax_reg, aes(x=values.1, y=values, col=ind)) + geom_point() + geom_smooth(method="lm", se=FALSE) + labs(title="Plot of avg passenger time by no. of seat shuffle (bmax_sd)", x ="no. of seat shuffle", y = "avg passenger time")
+```
+no threshold value too
+
+bd_smin
+```{r}
+bd_smin_reg <- cbind(stack(bd_smin[10:17]),stack(bd_smin[18:25]))[-4]
+ggplot(bd_smin_reg, aes(x=values.1, y=values, col=ind)) + geom_point() + geom_smooth(method="lm", se=FALSE) + labs(title="Plot of avg passenger time by no. of seat shuffle (bd_smin)", x ="no. of seat shuffle", y = "avg passenger time")
+```
+
+Here, we can see that there might potentially be a threshold value for btf and ftb models, hence we check their intercept.
+If intercept of ftb model is < intercept of btf model significantly, that means there exist a significant threshold
+
+```{r}
+coef(lm(avgBoardingTime_ftb~seatShuffle_ftb, data = bd_smin))["(Intercept)"]
+coef(lm(avgBoardingTime_btf~seatShuffle_btf, data = bd_smin))["(Intercept)"]
+```
+
+Since intercept_ftb > intercept_btf, we still do not have a significant threshold value for this case
+
+bd_smax
+```{r}
+bd_smax_reg <- cbind(stack(bd_smax[10:17]),stack(bd_smax[18:25]))[-4]
+ggplot(bd_smax_reg, aes(x=values.1, y=values, col=ind)) + geom_point() + geom_smooth(method="lm", se=FALSE) + labs(title="Plot of avg passenger time by no. of seat shuffle (bd_smax)", x ="no. of seat shuffle", y = "avg passenger time")
+```
+no threshold value too.
+
+
+----------------------------------------------------------
+For `Factor = No. of Stops` affecting total boarding time:
+
+bd_sd
+```{r}
+library(ggplot2)
+bd_sd_reg <- cbind(stack(bd_sd[2:9]),stack(bd_sd[26:33]))[-4]
+ggplot(bd_sd_reg, aes(x=values.1, y=values, col=ind)) + geom_point() + geom_smooth(method="lm", se=FALSE) + labs(title="Plot of total boarding time by no. of stops (bd_sd)", x ="no. of stops", y = "total boarding time")
+```
+
+We check the intercept between models with closely clustered values, such as btf & wta_ftb, as well as random & wta_random
+
+```{r}
+coef(lm(totalBoardingTime_btf~numStops_btf, data = bd_sd))["(Intercept)"]
+coef(lm(totalBoardingTime_wta_ftb~numStops_wta_ftb, data = bd_sd))["(Intercept)"]
+print("-----------------")
+coef(lm(totalBoardingTime_random~numStops_random, data = bd_sd))["(Intercept)"]
+coef(lm(totalBoardingTime_wta_random~numStops_wta_random, data = bd_sd))["(Intercept)"]
+```
+no threshold value 
+
+bd_smax
+```{r}
+bd_smax_reg <- cbind(stack(bd_smax[2:9]),stack(bd_smax[26:33]))[-4]
+ggplot(bd_smax_reg, aes(x=values.1, y=values, col=ind)) + geom_point() + geom_smooth(method="lm", se=FALSE) + labs(title="Plot of total boarding time by no. of stops (bd_smax)", x ="no. of stops", y = "total boarding time")
+```
+```{r}
+coef(lm(totalBoardingTime_random~numStops_random, data = bd_smax))["(Intercept)"]
+coef(lm(totalBoardingTime_wta_random~numStops_wta_random, data = bd_smax))["(Intercept)"]
+```
+no threshold value
+
+bd_smin
+```{r}
+bd_smin_reg <- cbind(stack(bd_smin[2:9]),stack(bd_smin[26:33]))[-4]
+ggplot(bd_sd_reg, aes(x=values.1, y=values, col=ind)) + geom_point() + geom_smooth(method="lm", se=FALSE) + labs(title="Plot of total boarding time by no. of stops (bd_smin)", x ="no. of stops", y = "total boarding time")
+```
+```{r}
+coef(lm(totalBoardingTime_btf~numStops_btf, data = bd_smin))["(Intercept)"]
+coef(lm(totalBoardingTime_wta_ftb~numStops_wta_ftb, data = bd_smin))["(Intercept)"]
+print("------")
+coef(lm(totalBoardingTime_random~numStops_random, data = bd_smin))["(Intercept)"]
+coef(lm(totalBoardingTime_wta_random~numStops_wta_random, data = bd_smin))["(Intercept)"]
+```
+no threshold
+
+sd_bmax
+```{r}
+bmax_sd_reg <- cbind(stack(sd_bmax[2:9]),stack(sd_bmax[26:33]))[-4]
+ggplot(bmax_sd_reg, aes(x=values.1, y=values, col=ind)) + geom_point() + geom_smooth(method="lm", se=FALSE) + labs(title="Plot of total boarding time by no. of stops (bmax_sd)", x ="no. of stops", y = "total boarding time")
+```
+```{r}
+coef(lm(totalBoardingTime_btf~numStops_btf, data = sd_bmax))["(Intercept)"]
+coef(lm(totalBoardingTime_wta_ftb~numStops_wta_ftb, data = sd_bmax))["(Intercept)"]
+print("------")
+coef(lm(totalBoardingTime_random~numStops_random, data = sd_bmax))["(Intercept)"]
+coef(lm(totalBoardingTime_wta_random~numStops_wta_random, data = sd_bmax))["(Intercept)"]
+```
+no threshold value
+
+sd_bmax
+```{r}
+bmin_sd_reg <- cbind(stack(sd_bmin[2:9]),stack(sd_bmin[26:33]))[-4]
+ggplot(bmin_sd_reg, aes(x=values.1, y=values, col=ind)) + geom_point() + geom_smooth(method="lm", se=FALSE) + labs(title="Plot of total boarding time by no. of stops (bmin_sd)", x ="no. of stops", y = "total boarding time")
+```
+```{r}
+coef(lm(totalBoardingTime_ftb~numStops_ftb, data = sd_bmin))["(Intercept)"]
+coef(lm(totalBoardingTime_btf~numStops_btf, data = sd_bmin))["(Intercept)"]
+coef(lm(totalBoardingTime_random~numStops_random, data = sd_bmin))["(Intercept)"]
+coef(lm(totalBoardingTime_wta_ftb~numStops_wta_ftb, data = sd_bmin))["(Intercept)"]
+coef(lm(totalBoardingTime_wta_random~numStops_wta_random, data = sd_bmin))["(Intercept)"]
+coef(lm(totalBoardingTime_wta_btf~numStops_wta_btf, data = sd_bmin))["(Intercept)"]
+```
+There is a significant threshold value between ftb and btf but those 2 models are the 2 worst models and thus is quite meaningless for our analysis
+
+----------------------------------------------------------
+For `Factor = No. of Stops` affecting average passenger boarding time:
+
+bd_sd
+```{r}
+library(ggplot2)
+bd_sd_reg <- cbind(stack(bd_sd[10:17]),stack(bd_sd[26:33]))[-4]
+ggplot(bd_sd_reg, aes(x=values.1, y=values, col=ind)) + geom_point() + geom_smooth(method="lm", se=FALSE) + labs(title="Plot of average passenger boarding time by no. of stops (bd_sd)", x ="no. of stops", y = "average passenger boarding time")
+```
+```{r}
+coef(lm(avgBoardingTime_ftb~numStops_ftb, data = bd_sd))["(Intercept)"]
+coef(lm(avgBoardingTime_btf~numStops_btf, data = bd_sd))["(Intercept)"]
+print("-------")
+coef(lm(avgBoardingTime_sm~numStops_sm, data = bd_sd))["(Intercept)"]
+coef(lm(avgBoardingTime_wta_btf~numStops_wta_btf, data = bd_sd))["(Intercept)"]
+```
+
+threshold found for wta_btf and sm:
+```{r}
+(coef(lm(avgBoardingTime_sm~numStops_sm, data = bd_sd))["(Intercept)"]-coef(lm(avgBoardingTime_wta_btf~numStops_wta_btf, data = bd_sd))["(Intercept)"])/(coef(lm(avgBoardingTime_wta_btf~numStops_wta_btf, data = bd_sd))[2]-coef(lm(avgBoardingTime_sm~numStops_sm, data = bd_sd))[2])
+```
+
+Hence currently in our simulation with bd_sd params, wta_btf is a better model than sm but 
+if no. of stops is below 712, sm is a better model than wta_btf.
+
+bd_smax
+```{r}
+bd_smax_reg <- cbind(stack(bd_smax[10:17]),stack(bd_smax[26:33]))[-4]
+ggplot(bd_smax_reg, aes(x=values.1, y=values, col=ind)) + geom_point() + geom_smooth(method="lm", se=FALSE) + labs(title="Plot of average passenger boarding time by no. of stops (bd_smax)", x ="no. of stops", y = "average passenger boarding time")
+```
+```{r}
+coef(lm(avgBoardingTime_ftb~numStops_ftb, data = bd_smax))["(Intercept)"]
+coef(lm(avgBoardingTime_btf~numStops_btf, data = bd_smax))["(Intercept)"]
+print("-------")
+coef(lm(avgBoardingTime_sm~numStops_sm, data = bd_smax))["(Intercept)"]
+coef(lm(avgBoardingTime_wta_btf~numStops_wta_btf, data = bd_smax))["(Intercept)"]
+```
+threshold found for wta_btf and sm:
+
+```{r}
+(coef(lm(avgBoardingTime_sm~numStops_sm, data = bd_smax))["(Intercept)"]-coef(lm(avgBoardingTime_wta_btf~numStops_wta_btf, data = bd_smax))["(Intercept)"])/(coef(lm(avgBoardingTime_wta_btf~numStops_wta_btf, data = bd_smax))[2]-coef(lm(avgBoardingTime_sm~numStops_sm, data = bd_smax))[2])
+```
+Hence currently in our simulation with bd_smax params, wta_btf is a better model than sm but 
+if no. of stops is below 814, sm is a better model than wta_btf.
+
+bd_smin
+```{r}
+bd_smin_reg <- cbind(stack(bd_smin[10:17]),stack(bd_smin[26:33]))[-4]
+ggplot(bd_smin_reg, aes(x=values.1, y=values, col=ind)) + geom_point() + geom_smooth(method="lm", se=FALSE) + labs(title="Plot of average passenger boarding time by no. of stops (bd_smin)", x ="no. of stops", y = "average passenger boarding time")
+```
+```{r}
+coef(lm(avgBoardingTime_ftb~numStops_ftb, data = bd_smin))["(Intercept)"]
+coef(lm(avgBoardingTime_btf~numStops_btf, data = bd_smin))["(Intercept)"]
+coef(lm(avgBoardingTime_wta_ftb~numStops_wta_ftb, data = bd_smin))["(Intercept)"]
+print("-----")
+coef(lm(avgBoardingTime_sm~numStops_sm, data = bd_smin))["(Intercept)"]
+coef(lm(avgBoardingTime_wta_btf~numStops_wta_btf, data = bd_smin))["(Intercept)"]
+```
+
+significant threshold found for wta_btf and sm:
+```{r}
+(coef(lm(avgBoardingTime_sm~numStops_sm, data = bd_smin))["(Intercept)"]-coef(lm(avgBoardingTime_wta_btf~numStops_wta_btf, data = bd_smin))["(Intercept)"])/(coef(lm(avgBoardingTime_wta_btf~numStops_wta_btf, data = bd_smin))[2]-coef(lm(avgBoardingTime_sm~numStops_sm, data = bd_smin))[2])
+```
+
+Hence currently in our simulation with bd_smin params, wta_btf is a better model than sm but 
+if no. of stops is below 782, sm is a better model than wta_btf.
+
+sd_bmax
+```{r}
+bmax_sd_reg <- cbind(stack(sd_bmax[10:17]),stack(sd_bmax[26:33]))[-4]
+ggplot(bmax_sd_reg, aes(x=values.1, y=values, col=ind)) + geom_point() + geom_smooth(method="lm", se=FALSE) + labs(title="Plot of average passenger boarding time by no. of stops (bmax_sd)", x ="no. of stops", y = "average passenger boarding time")
+```
+```{r}
+coef(lm(avgBoardingTime_ftb~numStops_ftb, data = bd_smin))["(Intercept)"]
+coef(lm(avgBoardingTime_btf~numStops_btf, data = bd_smin))["(Intercept)"]
+print("-----")
+coef(lm(avgBoardingTime_sm~numStops_sm, data = bd_smin))["(Intercept)"]
+coef(lm(avgBoardingTime_wta_btf~numStops_wta_btf, data = bd_smin))["(Intercept)"]
+print("-----")
+coef(lm(avgBoardingTime_random~numStops_random, data = bd_smin))["(Intercept)"]
+coef(lm(avgBoardingTime_wta_random~numStops_wta_random, data = bd_smin))["(Intercept)"]
+```
+
+significant threshold found for wta_btf and sm:
+```{r}
+(coef(lm(avgBoardingTime_sm~numStops_sm, data = sd_bmax))["(Intercept)"]-coef(lm(avgBoardingTime_wta_btf~numStops_wta_btf, data = sd_bmax))["(Intercept)"])/(coef(lm(avgBoardingTime_wta_btf~numStops_wta_btf, data = sd_bmax))[2]-coef(lm(avgBoardingTime_sm~numStops_sm, data = sd_bmax))[2])
+```
+
+Hence currently in our simulation with bmax_sd params, wta_btf is a better model than sm but 
+if no. of stops is below 1048, sm is a better model than wta_btf.
+
+sd_bmin
+```{r}
+bmin_sd_reg <- cbind(stack(sd_bmin[10:17]),stack(sd_bmin[26:33]))[-4]
+ggplot(bmin_sd_reg, aes(x=values.1, y=values, col=ind)) + geom_point() + geom_smooth(method="lm", se=FALSE) + labs(title="Plot of average passenger boarding time by no. of stops (bmin_sd)", x ="no. of stops", y = "average passenger boarding time")
+```
+visually there are no significant threshold.
+
+For average passenger boarding time for most of our parameters, we can say that wta_btf is a better model than sm but 
+if no. of stops decreases below some threshold (depending on the params), sm will become a better model than wta_btf.
+
+Hence an increase in the no. of stops due to reasons such as shorter passenger interarrival time for boarding, or on flights with higher baggage volumes, will result in the wta_btf model being more favoured than steffen modified model.
+
+
+-----------
+`END OF OA`
+-----------
